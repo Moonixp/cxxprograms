@@ -29,13 +29,25 @@ Each employee got what appears to be an identical file but with their own unique
 
 ---
 
-## question 7
+## question 7: baby cam hack
 
 The solution: Network traffic analysis
 When the baby wakes up and starts crying, the skype call automatically increases its bandwidth usage to transmit the audio so the engineer can see this spike in network traffic on his switch dashboard.
 Here's what's happening:
 
 - The Baseline traffic, When baby is sleeping, skype maintains a low-bandwidth connection (just keepalives, maybe some ambient noise)
+- Traffic spike, when the baby wakes up and cries, skype detects audio then bandwidth usage jumps transmit the crying
+- In the dashboard monitoring, it displays the network interface charts in PacketTrap to show real-time bandwidth utilization, so he'd see a sudden spike in transmit/receive on whichever port the computer is connected to
+
+Looking at the dashboard:
+Those network interface charts (Ports 2-4, 22-24) show real-time traffic patterns
+You can see the historical bandwidth usage over time
+A crying baby would cause a very obvious spike in the Skype traffic
+
+this works because skype uses adaptive bitrate
+
+- quiet room = low bandwidth,
+- crying baby (audio, movement) = much higher bandwidth
 
 ## Question 8: Upward-Growing Stacks and Buffer Overflows
 
@@ -65,16 +77,3 @@ What actually prevents stack overflows:
 - Stack guards - Hardware/OS protection of stack pages
 
 ---
-
-- Traffic spike, when the baby wakes up and cries, skype detects audio then bandwidth usage jumps transmit the crying
-- In the dashboard monitoring, it displays the network interface charts in PacketTrap to show real-time bandwidth utilization, so he'd see a sudden spike in transmit/receive on whichever port the computer is connected to
-
-Looking at the dashboard:
-Those network interface charts (Ports 2-4, 22-24) show real-time traffic patterns
-You can see the historical bandwidth usage over time
-A crying baby would cause a very obvious spike in the Skype traffic
-
-this works because skype uses adaptive bitrate
-
-- quiet room = low bandwidth,
-- crying baby (audio, movement) = much higher bandwidth
