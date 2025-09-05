@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <iostream>
 #include <map>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -13,7 +14,7 @@ private:
   std::vector<unsigned char> data;
   std::map<unsigned char, size_t> frequency;
 
-  //  Shannon entropy
+  // Shannon entropy
   double calculateEntropy() const {
     if (data.empty())
       return 0.0;
@@ -36,11 +37,11 @@ private:
     if (data.empty())
       return 0.0;
 
-    double expected = static_cast<double>(data.size()) / 256.0;
+    double expected = (double)(data.size()) / 256.0;
     double chiSquare = 0.0;
 
     for (int i = 0; i < 256; i++) {
-      unsigned char byte = static_cast<unsigned char>(i);
+      unsigned char byte = (unsigned char)(i);
       size_t observed = frequency.count(byte) ? frequency.at(byte) : 0;
       double diff = observed - expected;
       chiSquare += (diff * diff) / expected;
@@ -65,7 +66,7 @@ private:
       }
     }
 
-    return static_cast<double>(printableCount) / data.size();
+    return (double)printableCount / data.size();
   }
 
   // Calculate byte value distribution variance
@@ -84,7 +85,6 @@ private:
       double diff = byte - mean;
       variance += diff * diff;
     }
-
     return variance / data.size();
   }
 
@@ -101,16 +101,13 @@ private:
                                          data.begin() + i + patternLength);
       patterns[pattern]++;
     }
-
     size_t repeatedPatterns = 0;
     for (const auto &pair : patterns) {
       if (pair.second > 1) {
         repeatedPatterns += pair.second - 1;
       }
     }
-
-    return static_cast<double>(repeatedPatterns) /
-           (data.size() - patternLength + 1);
+    return (double)repeatedPatterns / (data.size() - patternLength + 1);
   }
 
   // Analyze byte transitions for randomness
@@ -130,7 +127,7 @@ private:
     size_t totalTransitions = data.size() - 1;
 
     for (const auto &pair : transitions) {
-      double probability = static_cast<double>(pair.second) / totalTransitions;
+      double probability = (double)pair.second / totalTransitions;
       if (probability > 0) {
         entropy -= probability * log2(probability);
       }
@@ -142,23 +139,23 @@ private:
 public:
   bool loadFile(const std::string &filename) {
     if (!std::filesystem::exists(filename)) {
-      std::cerr << "Error: File does not exist :'" << filename << "'"
-                << std::endl;
+      std::cerr << "Error: File does not exist :'" << filename << "'\n";
       return false;
     }
     std::ifstream file(filename, std::ios::binary);
     if (!file) {
-      std::cerr << "Error: Cannot open file '" << filename << "'" << std::endl;
+      std::cerr << "Error: Cannot open file '" << filename << "'\n";
       return false;
     }
 
     // Read file into vector
     data.assign((std::istreambuf_iterator<char>(file)),
                 std::istreambuf_iterator<char>());
+
     file.close();
 
     if (data.empty()) {
-      std::cerr << "Error: File is empty" << std::endl;
+      std::cerr << "Error: File is empty\n";
       return false;
     }
 
@@ -191,7 +188,6 @@ public:
     result.repetitionScore = calculateRepetitionScore();
     result.transitionEntropy = calculateTransitionEntropy();
 
-    // Scoring system for encryption detection
     double score = 0.0;
 
     // High entropy (close to 8.0 bits) suggests encryption
@@ -245,34 +241,29 @@ public:
 
   void printDetailedAnalysis(const AnalysisResult &result) const {
     std::cout << std::fixed << std::setprecision(4);
-    std::cout << "\n=== Encryption Detection Analysis ===" << std::endl;
-    std::cout << "File size: " << data.size() << " bytes" << std::endl;
-    std::cout << "Unique bytes: " << frequency.size() << "/256" << std::endl;
-    std::cout << "\nStatistical Metrics:" << std::endl;
-    std::cout << "  Shannon Entropy: " << result.entropy << "/8.0" << std::endl;
-    std::cout << "  Chi-Square: " << result.chiSquare << std::endl;
-    std::cout << "  ASCII Ratio: " << result.asciiRatio * 100 << "%"
-              << std::endl;
-    std::cout << "  Byte Variance: " << result.variance << std::endl;
-    std::cout << "  Repetition Score: " << result.repetitionScore * 100 << "%"
-              << std::endl;
-    std::cout << "  Transition Entropy: " << result.transitionEntropy
-              << std::endl;
 
-    std::cout << "\nAnalysis Score: " << result.confidenceScore << "/100"
-              << std::endl;
+    std::cout << "\n=== Encryption Detection Analysis ===\n";
+    std::cout << "File size: " << data.size() << " bytes\n";
+    std::cout << "Unique bytes: " << frequency.size() << "/256\n";
+    std::cout << "\nStatistical Metrics:\n";
+    std::cout << "  Shannon Entropy: " << result.entropy << "/8.0\n";
+    std::cout << "  Chi-Square: " << result.chiSquare << '\n';
+    std::cout << "  ASCII Ratio: " << result.asciiRatio * 100 << "%\n";
+    std::cout << "  Byte Variance: " << result.variance << '\n';
+    std::cout << "  Repetition Score: " << result.repetitionScore * 100
+              << "%\n";
+    std::cout << "  Transition Entropy: " << result.transitionEntropy << '\n';
+    std::cout << "\nAnalysis Score: " << result.confidenceScore << "/100\n";
+    std::flush(std::cout);
 
     if (result.highCertaintyEncrypted) {
-      std::cout << "\n*** HIGH CERTAINTY: File appears to be ENCRYPTED ***"
-                << std::endl;
-      std::cout << "Confidence: " << result.confidenceScore << "%" << std::endl;
+      std::cout << "*** HIGH CERTAINTY: File appears to be ENCRYPTED ***\n";
+      std::cout << "Confidence: " << result.confidenceScore << "%\n";
     } else {
-      std::cout << "\n*** File does NOT appear to be encrypted ***"
-                << std::endl;
+      std::cout << "\n*** File does NOT appear to be encrypted ***\n";
       if (result.confidenceScore > 40) {
         std::cout
-            << "Note: Some encryption indicators present but below threshold"
-            << std::endl;
+            << "Note: Some encryption indicators present but below threshold\n";
       }
     }
   }
@@ -280,9 +271,10 @@ public:
 
 int main(int argc, char *argv[]) {
   if (argc != 2) {
-    std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
-    std::cerr << "Analyzes a file to detect if it is likely encrypted"
-              << std::endl;
+    std::cerr << "Usage: " << argv[0] << " <filename>\n";
+    std::cerr << "Analyzes a file to detect if it is likely encrypted\n";
+
+    std::flush(std::cout);
     return 1;
   }
 

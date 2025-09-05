@@ -14,9 +14,15 @@ cmake-test-build:
 	@cmake -S test/ -B test_build/
 	@cmake --build test_build/
 
+cmake-test-run: cmake-test-build
+	@./test_build/uri_parser_tests
+
 cmake-main-build:
 	@cmake -S . -B build/
 	@cmake --build build/
+
+cmake-main-run: cmake-main-build
+	@./build/uri-parser
 
 native-test-build: native-create-build
 	$(CC) $(LIB_CXX_FILES)  $(TEST_CXX_FILES) $(CXXFLAGS) $(CXX_TEST_FLAGS) -o $(TEST_BIN)

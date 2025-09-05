@@ -1,10 +1,11 @@
-#include "headers.hpp"
+#include "pe_headers.hpp"
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
@@ -18,24 +19,22 @@ private:
   int confidence;
   std::vector<std::string> findings;
 
-  // map the string to confidence
-  std::set<std::string> sshStrings = {
-      "ssh",         "SSH",         "openssh",
-      "OpenSSH",     "putty",       "PuTTY",
-      "PUTTY",       "ssh-rsa",     "ssh-dss",
-      "ssh-ed25519", "ecdsa-sha2",  "id_rsa",
-      "id_dsa",      "known_hosts", "authorized_keys",
-      ".ssh",        "~/.ssh",      "%USERPROFILE%\\.ssh",
-      "ssh-keygen",  "ssh-add",     "ssh-agent",
-      "SecureShell", "terminal",    "sftp",
-      "scp"};
+  std::map<std::string, size_t> sshStringsMap = {
+      {"ssh", 25},         {"openssh", 25},     {"putty", 25},
+      {"PUTTY", 25},       {"ssh-rsa", 25},     {"ssh-dss", 25},
+      {"ssh-ed25519", 15}, {"ecdsa-sha2", 25},  {"id_rsa", 12},
+      {"id_dsa", 19},      {"known_hosts", 25}, {"authorized_keys", 12},
+      {".ssh", 20},        {"~/.ssh", 20},      {"%USERPROFILE%\\.ssh", 25},
+      {"ssh-keygen", 20},  {"ssh-add", 19},     {"ssh-agent", 20},
+      {"SecureShell", 20}, {"terminal", 12},    {"sftp", 18},
+      {"scp", 20}};
 
-  //  libraries commonly used by SSH clients
-  std::set<std::string> sshLibraries = {
-      "ws2_32.dll",   "wsock32.dll",  "wininet.dll",  "crypt32.dll",
-      "advapi32.dll", "bcrypt.dll",   "libssl",       "libcrypto",
-      "openssl",      "libeay32.dll", "ssleay32.dll", "ncrypt.dll",
-      "cryptsp.dll"};
+  std::map<std::string, size_t> sshLibrariesMap = {
+      {"ws2_32.dll", 12},   {"wsock32.dll", 12},  {"wininet.dll", 12},
+      {"crypt32.dll", 12},  {"advapi32.dll", 12}, {"bcrypt.dll", 12},
+      {"libssl", 12},       {"libcrypto", 12},    {"openssl", 12},
+      {"libeay32.dll", 12}, {"ssleay32.dll", 12}, {"ncrypt.dll", 12},
+      {"cryptsp.dll", 12}};
 
 public:
   bool loadPEFile(const std::string &filename) {
@@ -111,23 +110,25 @@ public:
                    ::tolower);
 
     int stringMatches = 0;
-    for (const auto &sshString : sshStrings) {
-      std::string lowerStr = sshString;
+    for (const auto &sshString : sshStringsMap) {
+      std::string lowerStr = sshString.first;
       std::transform(lowerStr.begin(), lowerStr.end(), lowerStr.begin(),
                      ::tolower);
 
       if (fileContent.find(lowerStr) != std::string::npos) {
-        findings.push_back("Found SSH-related string: " + sshString);
+        findings.push_back("Found SSH-related string: " + sshString.first);
         stringMatches++;
 
-        // Weight certain strings higher
-        if (lowerStr == "openssh" || lowerStr == "putty") {
-          confidence += 25;
-        } else if (lowerStr == "ssh" || lowerStr.find("ssh-") == 0) {
-          confidence += 15;
-        } else {
-          confidence += 10;
-        }
+        // // Weight certain strings higher
+        // if (lowerStr == "openssh" || lowerStr == "putty") {
+        //   confidence += 25;
+        // } else if (lowerStr == "ssh" || lowerStr.find("ssh-") == 0) {
+        //   confidence += 15;
+        // } else {
+        //   confidence += 10;
+        // }
+
+        confidence += sshString.second;
       }
     }
 
@@ -181,8 +182,8 @@ public:
         std::transform(dllName.begin(), dllName.end(), dllName.begin(),
                        ::tolower);
 
-        for (const auto &sshLib : sshLibraries) {
-          std::string lowerLib = sshLib;
+        for (const auto &sshLib : sshLibrariesMap) {
+          std::string lowerLib = sshLib.first;
           std::transform(lowerLib.begin(), lowerLib.end(), lowerLib.begin(),
                          ::tolower);
 
@@ -198,6 +199,7 @@ public:
             } else {
               confidence += 10;
             }
+
             break;
           }
         }
