@@ -14,7 +14,15 @@ private:
   std::vector<unsigned char> data;
   std::map<unsigned char, size_t> frequency;
 
-  // Shannon entropy
+  
+  /**
+   * @brief how much the data is like random noise
+   * @return 0.0 if not random, close to 8.0 if really random
+   *
+   * this is a measure of how mixed up the bytes are. if all the bytes are the
+   * same, this is 0.0. if all the bytes are evenly distributed, this is 8.0.
+   * most data is somewhere in between.
+   */
   double calculateEntropy() const {
     if (data.empty())
       return 0.0;
@@ -32,7 +40,15 @@ private:
     return entropy;
   }
 
-  // Calculate chi-square test for uniformity
+  /**
+   * @brief calculate how "random" the data is
+   * @return how much information is in the data, in bits
+   *
+   * the more random the data is, the higher the value. the less random the
+   * data is, the lower the value. For example, a string of all the same
+   * character will have a value of 0, while a string of random characters will
+   * have a value close to 8.
+   */
   double calculateChiSquare() const {
     if (data.empty())
       return 0.0;
@@ -50,7 +66,7 @@ private:
     return chiSquare;
   }
 
-  // Check for ASCII text patterns (low values would suggest plaintext)
+  // check for ascii text patterns (low values would suggest plaintext)
   double calculateAsciiRatio() const {
     if (data.empty())
       return 0.0;
@@ -69,7 +85,13 @@ private:
     return (double)printableCount / data.size();
   }
 
-  // Calculate byte value distribution variance
+  /**
+   * @brief calculate how much the bytes vary from the mean
+   * @return a measure of how spread out the bytes are from the mean
+   *
+   * the more spread out the bytes are from the mean, the higher the value.
+   * the less spread out the bytes are from the mean, the lower the value.
+   */
   double calculateVariance() const {
     if (data.empty())
       return 0.0;
@@ -88,7 +110,13 @@ private:
     return variance / data.size();
   }
 
-  // Check for repeated patterns (encrypted data should have minimal repetition)
+  /**
+   * @brief calculate how much the bytes repeat patterns
+   * @return a measure of how repetitive the bytes are
+   *
+   * encrypted data should have minimal repetition, so the higher this value,
+   * the more likely the data is encrypted.
+   */
   double calculateRepetitionScore() const {
     if (data.size() < 4)
       return 0.0;
@@ -110,7 +138,12 @@ private:
     return (double)repeatedPatterns / (data.size() - patternLength + 1);
   }
 
-  // Analyze byte transitions for randomness
+  // calculate how random the transitions between bytes are
+
+  // this is a measure of how much the data looks like a random sequence.
+  // if the data is truly random, each byte should have an equal chance of
+  // being followed by any other byte. if the data is not random, certain
+  // byte transitions should be more likely than others.
   double calculateTransitionEntropy() const {
     if (data.size() < 2)
       return 0.0;

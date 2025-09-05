@@ -1,10 +1,9 @@
 /*
  * Author : Hyun Wo
- * Purpose : (For Demo purposes only) This provides utilities for string
- * manipulation for the URI class Date : 5th September 2025
- *
- * This software is under no license and can be used and distributed and
- * modified by any third party as required.
+ * Purpose : This software is free for use and modification by any third party.
+ * No warranty is provided and the user is responsible for any consequences of
+ * its use.
+ * Date : 5th September 2025
  */
 #ifndef URI_UTILS_HPP
 #define URI_UTILS_HPP

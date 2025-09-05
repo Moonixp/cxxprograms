@@ -1,0 +1,19 @@
+# CMake
+CMakeCache.txt
+CMakeFiles
+CMakeOutput.log
+cpack_config.cmake
+CPackConfig.cmake
+CPackSourceConfig.cmake
+Makefile
+cmake_install.cmake
+CMakeScripts
+Testing
+*.cmake
+*.txt
+*.log
+*.gz
+detectpessh/build
+detectenc/build
+rfc3986uriparser/build
+rfc3986uriparser/test_build

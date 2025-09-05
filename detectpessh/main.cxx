@@ -4,39 +4,157 @@
 #include <cstring>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <iostream>
 #include <map>
 #include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 class PESSHDetector {
 private:
   std::vector<uint8_t> fileData;
+  std::string dllMapFilePath{"config/dllMap.conf"};
+  std::string sshMapFilePath{"config/sshMap.conf"};
   DOS_HEADER dosHeader;
   NT_HEADERS ntHeaders;
   std::vector<SECTION_HEADER> sectionHeaders;
   int confidence;
   std::vector<std::string> findings;
 
-  std::map<std::string, size_t> sshStringsMap = {
-      {"ssh", 25},         {"openssh", 25},     {"putty", 25},
-      {"PUTTY", 25},       {"ssh-rsa", 25},     {"ssh-dss", 25},
-      {"ssh-ed25519", 15}, {"ecdsa-sha2", 25},  {"id_rsa", 12},
-      {"id_dsa", 19},      {"known_hosts", 25}, {"authorized_keys", 12},
-      {".ssh", 20},        {"~/.ssh", 20},      {"%USERPROFILE%\\.ssh", 25},
-      {"ssh-keygen", 20},  {"ssh-add", 19},     {"ssh-agent", 20},
-      {"SecureShell", 20}, {"terminal", 12},    {"sftp", 18},
-      {"scp", 20}};
+  std::map<std::string, size_t> sshStringsMap;
+  // {"ssh", 25},         {"openssh", 25},     {"putty", 25},
+  // {"PUTTY", 25},       {"ssh-rsa", 25},     {"ssh-dss", 25},
+  // {"ssh-ed25519", 15}, {"ecdsa-sha2", 25},  {"id_rsa", 12},
+  // {"id_dsa", 19},      {"known_hosts", 25}, {"authorized_keys", 12},
+  // {".ssh", 20},        {"~/.ssh", 20},      {"%USERPROFILE%\\.ssh", 25},
+  // {"ssh-keygen", 20},  {"ssh-add", 19},     {"ssh-agent", 20},
+  // {"SecureShell", 20}, {"terminal", 12},    {"sftp", 18},
+  // {"scp", 20}};
 
-  std::map<std::string, size_t> sshLibrariesMap = {
-      {"ws2_32.dll", 12},   {"wsock32.dll", 12},  {"wininet.dll", 12},
-      {"crypt32.dll", 12},  {"advapi32.dll", 12}, {"bcrypt.dll", 12},
-      {"libssl", 12},       {"libcrypto", 12},    {"openssl", 12},
-      {"libeay32.dll", 12}, {"ssleay32.dll", 12}, {"ncrypt.dll", 12},
-      {"cryptsp.dll", 12}};
+  std::map<std::string, size_t> sshLibrariesMap;
+  // {"ws2_32.dll", 12},   {"wsock32.dll", 12},  {"wininet.dll", 12},
+  // {"crypt32.dll", 12},  {"advapi32.dll", 12}, {"bcrypt.dll", 12},
+  // {"libssl", 12},       {"libcrypto", 12},    {"openssl", 12},
+  // {"libeay32.dll", 12}, {"ssleay32.dll", 12}, {"ncrypt.dll", 12},
+  // {"cryptsp.dll", 12}};
 
 public:
+  PESSHDetector() {
+    loadDLLMapFromConfig();
+    loadSSHMapFromConfig();
+  }
+
+  PESSHDetector(std::string dllMapConfigPath, std::string sshMapConfigPath)
+      : dllMapFilePath(dllMapConfigPath), sshMapFilePath(sshMapConfigPath) {
+    loadDLLMapFromConfig();
+    loadSSHMapFromConfig();
+  }
+
+  ~PESSHDetector() = default;
+
+  bool fileExists(const std::string &path) {
+    return std::filesystem::exists(path);
+  }
+  void setDefaultDLLMap() {
+    sshLibrariesMap = {
+        {"ws2_32.dll", 12},   {"wsock32.dll", 12},  {"wininet.dll", 12},
+        {"crypt32.dll", 12},  {"advapi32.dll", 12}, {"bcrypt.dll", 12},
+        {"libssl", 12},       {"libcrypto", 12},    {"openssl", 12},
+        {"libeay32.dll", 12}, {"ssleay32.dll", 12}, {"ncrypt.dll", 12},
+        {"cryptsp.dll", 12}};
+  }
+  void setDefaultSSHMap() {
+    sshStringsMap = {
+        {"ssh", 25},         {"openssh", 25},     {"putty", 25},
+        {"PUTTY", 25},       {"ssh-rsa", 25},     {"ssh-dss", 25},
+        {"ssh-ed25519", 15}, {"ecdsa-sha2", 25},  {"id_rsa", 12},
+        {"id_dsa", 19},      {"known_hosts", 25}, {"authorized_keys", 12},
+        {".ssh", 20},        {"~/.ssh", 20},      {"%USERPROFILE%\\.ssh", 25},
+        {"ssh-keygen", 20},  {"ssh-add", 19},     {"ssh-agent", 20},
+        {"SecureShell", 20}, {"terminal", 12},    {"sftp", 18},
+        {"scp", 20}};
+  }
+
+  // Trim whitespace from both ends of a string
+  std::string trimWhiteSpace(const std::string &str) {
+    size_t start = str.find_first_not_of(" \t\n\r\f\v");
+    if (start == std::string::npos)
+      return "";
+
+    size_t end = str.find_last_not_of(" \t\n\r\f\v");
+    return str.substr(start, end - start + 1);
+  }
+
+
+
+  // reads map from file and loads it into sshLibrariesMap
+  void loadDLLMapFromConfig() {
+    loadMapFromConfig(dllMapFilePath, sshLibrariesMap,
+                      [&]() { setDefaultDLLMap(); });
+  }
+
+  // loads the map from a file and puts it into sshStringsMap 
+  void loadSSHMapFromConfig() {
+    loadMapFromConfig(sshMapFilePath, sshStringsMap,
+                      [&]() { setDefaultSSHMap(); });
+  }
+
+
+  /**
+   * Loads a map from a file and puts it into map.
+   * If the file does not exist, it sets the default map using the setDeaultMap function
+   * If there is an error while reading the file, it sets the default map and writes
+   * an error message to cerr.
+   *
+   * @param filename the name of the file to read from
+   * @param map the map to put the data into
+   * @param setDefaultMap a function to call if the file does not exist or there
+   * is an error while reading the file
+   */
+  void loadMapFromConfig(const std::string &filename,
+                         std::map<std::string, size_t> &map,
+                         std::function<void()> setDefaultMap) {
+
+    if (!fileExists(filename)) {
+      setDefaultMap();
+      return;
+    }
+
+    std::ifstream ifs(filename);
+    if (ifs.bad()) {
+      std::cout << "File : " << filename
+                << " could not be opened\nUsing default Mappings";
+      return;
+    }
+
+    std::string line{100};
+
+    while (std::getline(ifs, line)) {
+      try {
+
+        size_t eq_pos = line.find('=');
+        if (eq_pos == std::string::npos)
+          throw;
+
+        map.emplace(std::make_pair(trimWhiteSpace(line.substr(0, eq_pos)),
+                                   trimWhiteSpace(line.substr(eq_pos + 1))));
+
+      } catch (...) {
+        std::cerr << "Error occured with config file, Using default Mappings\n";
+        setDefaultMap();
+        return;
+      }
+    }
+  }
+
+  /**
+   * Reads a PE file and stores its contents in the PESSHDetector class.
+   * 
+   * @param filename the path to the PE file to read
+   * @return true if the file was read successfully, false otherwise
+   */
   bool loadPEFile(const std::string &filename) {
     if (!std::filesystem::exists(filename)) {
       std::cerr << "Error: " << filename << " Does not exist" << '\n';
@@ -118,16 +236,6 @@ public:
       if (fileContent.find(lowerStr) != std::string::npos) {
         findings.push_back("Found SSH-related string: " + sshString.first);
         stringMatches++;
-
-        // // Weight certain strings higher
-        // if (lowerStr == "openssh" || lowerStr == "putty") {
-        //   confidence += 25;
-        // } else if (lowerStr == "ssh" || lowerStr.find("ssh-") == 0) {
-        //   confidence += 15;
-        // } else {
-        //   confidence += 10;
-        // }
-
         confidence += sshString.second;
       }
     }
@@ -177,31 +285,16 @@ public:
 
       uint32_t nameOffset = rvaToFileOffset(importDesc.Name);
       if (nameOffset > 0 && nameOffset < fileData.size()) {
-        std::string dllName(
-            reinterpret_cast<const char *>(fileData.data() + nameOffset));
+        std::string dllName(fileData.begin() + nameOffset,
+                            fileData.begin() + nameOffset +
+                                strlen((const char *)(fileData.data() + nameOffset)));
         std::transform(dllName.begin(), dllName.end(), dllName.begin(),
                        ::tolower);
 
-        for (const auto &sshLib : sshLibrariesMap) {
-          std::string lowerLib = sshLib.first;
-          std::transform(lowerLib.begin(), lowerLib.end(), lowerLib.begin(),
-                         ::tolower);
-
-          if (dllName.find(lowerLib) != std::string::npos) {
-            findings.push_back("Found SSH-related import: " + dllName);
-
-            if (lowerLib.find("ssl") != std::string::npos ||
-                lowerLib.find("crypto") != std::string::npos) {
-              confidence += 20;
-            } else if (lowerLib.find("ws2_32") != std::string::npos ||
-                       lowerLib.find("wininet") != std::string::npos) {
-              confidence += 15;
-            } else {
-              confidence += 10;
-            }
-
-            break;
-          }
+        auto it = sshLibrariesMap.find(dllName);
+        if (it != sshLibrariesMap.end()) {
+          findings.push_back("Found SSH-related import: " + dllName);
+          confidence += it->second;
         }
       }
 
@@ -209,6 +302,11 @@ public:
     }
   }
 
+  /**
+   * Convert a Relative Virtual Address (RVA) to a file offset.
+   * @param rva Relative Virtual Address to convert.
+   * @return File offset of the given RVA, or 0 if the RVA is not valid.
+   */
   uint32_t rvaToFileOffset(uint32_t rva) {
     for (const auto &section : sectionHeaders) {
       if (rva >= section.VirtualAddress &&

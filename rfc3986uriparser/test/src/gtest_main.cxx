@@ -1,7 +1,7 @@
 #include "../../lib/include/uri_parser.hpp"
 #include <gtest/gtest.h>
 #include <sstream>
-
+#define ALL_TESTS
 #ifdef ALL_TESTS
 #define BASIC_URI_TESTS
 #define INVALID_URI_TESTS

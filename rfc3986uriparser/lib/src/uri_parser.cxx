@@ -84,15 +84,15 @@ std::string URI::to_string() const {
 }
 
 /**
- * Construct an authority string from the given userinfo, host and port.
+ * build authority string from userinfo, host and port
  *
- * If userinfo is not empty, it is prepended to the host with an "@" separator.
- * If port is not empty, it is appended to the host with a ":" separator.
+ * if userinfo is not empty, it is prepended to host with an "@"
+ * if port is not empty, it is appended to host with a ":"
  *
- * \param userinfo The userinfo part (can be empty).
- * \param host The host part.
- * \param port The port part (can be empty).
- * \return The constructed authority string.
+ * @param userinfo userinfo part (can be empty)
+ * @param host host part
+ * @param port port part (can be empty)
+ * @return constructed authority string
  */
 std::string URI::build_authority(const std::string &userinfo,
                                  const std::string &host,
@@ -131,10 +131,10 @@ bool URI::is_valid_host(const std::string &host) { return !host.empty(); }
 bool URI::is_valid_port(uint16_t port) { return port > 0; }
 
 /**
- * Parses a URI from a string.
+ * parses a uri from a given string
  *
- * @param uri_string URI string to parse
- * @return A pointer to the parsed URI object
+ * @param uri_string string representing the uri to parse
+ * @return a pointer to the parsed uri object
  */
 std::unique_ptr<URI> URIParser::parse(const std::string &uri_string) const {
   std::istringstream iss(uri_string);
@@ -142,12 +142,12 @@ std::unique_ptr<URI> URIParser::parse(const std::string &uri_string) const {
 }
 
 /**
- * Parses a URI from an input stream.
+ * reads a uri from a given input stream and returns a pointer to the parsed
+ * uri object
  *
- * @param input Input stream with the URI to parse
- * @return A pointer to the parsed URI object
- * @throws URIParseException If the input stream is empty or a URI component
- * is invalid
+ * @param input the input stream to read from
+ * @return a pointer to the parsed uri object
+ * @throws URIParseException if the input stream is empty or the uri is invalid
  */
 std::unique_ptr<URI> URIParser::parse(std::istream &input) const {
   auto uri = std::make_unique<URI>();
@@ -194,12 +194,12 @@ std::unique_ptr<URI> URIParser::parse(std::istream &input) const {
 }
 
 /**
- * Parses a URI scheme from an input stream.
+ * reads a uri scheme from an input stream
  *
- * @param input Input stream with the URI to parse
- * @param uri URI object to store the parsed scheme
+ * @param input input stream with the uri to parse
+ * @param uri uri object to store the parsed scheme
  * @return true if a scheme was parsed, false otherwise
- * @throws URIParseException If the input stream is empty or a URI component
+ * @throws URIParseException if the input stream is empty or a uri component
  * is invalid
  */
 bool URIParser::parse_scheme(std::istream &input, URI &uri) const {
@@ -244,12 +244,12 @@ bool URIParser::parse_scheme(std::istream &input, URI &uri) const {
 }
 
 /**
- * Parses a URI authority from an input stream.
+ * parses a uri authority from an input stream
  *
- * @param input Input stream with the URI to parse
- * @param uri URI object to store the parsed authority
+ * @param input input stream with the uri to parse
+ * @param uri uri object to store the parsed authority
  * @return true if an authority was parsed, false otherwise
- * @throws URIParseException If the input stream is empty or a URI component
+ * @throws URIParseException if the input stream is empty or a uri component
  * is invalid
  */
 bool URIParser::parse_authority(std::istream &input, URI &uri) const {
@@ -275,12 +275,12 @@ bool URIParser::parse_authority(std::istream &input, URI &uri) const {
 }
 
 /**
- * Extracts userinfo, host and port from the authority.
+ * extracts userinfo, host and port from the authority
  *
- * authority format is [userinfo@]host[:port]
+ * the format is [userinfo@]host[:port]
  *
- * @param authority The authority string to extract from
- * @param uri The URI object to store the parsed userinfo, host and port
+ * @param authority the authority string to extract from
+ * @param uri the uri object to store the parsed userinfo, host and port
  */
 void URIParser::parse_userinfo_host_port(const std::string &authority,
                                          URI &uri) const {
@@ -327,6 +327,17 @@ void URIParser::parse_userinfo_host_port(const std::string &authority,
   uri.set_port(port);
 }
 
+/**
+ * read the path part of a uri from an input stream
+ *
+ * read the path part from an input stream and store it in the given uri
+ * object. stops when a '?' or '#' character is encountered or when the end of
+ * the stream is reached.
+ *
+ * @param input the input stream to read from
+ * @param uri the uri object to store the parsed path in
+ * @return true if the path part was successfully parsed, false otherwise
+ */
 bool URIParser::parse_path(std::istream &input, URI &uri) const {
   std::string path;
   char c;
@@ -345,6 +356,17 @@ bool URIParser::parse_path(std::istream &input, URI &uri) const {
   return !path.empty();
 }
 
+/**
+ * parses a uri query from an input stream
+ *
+ * this function reads the query part from an input stream and stores it in the
+ * given uri object. it stops when a '#' character is encountered or when the
+ * end of the stream is reached.
+ *
+ * @param input the input stream to read from
+ * @param uri the uri object to store the parsed query in
+ * @return true if the query part was successfully parsed, false otherwise
+ */
 bool URIParser::parse_query(std::istream &input, URI &uri) const {
   std::string query;
   char c;
@@ -363,6 +385,16 @@ bool URIParser::parse_query(std::istream &input, URI &uri) const {
   return !query.empty();
 }
 
+/**
+ * parses a uri fragment from an input stream
+ *
+ * this function reads the fragment part from an input stream and stores it
+ * in the given uri object. it stops when the end of the stream is reached.
+ *
+ * @param input the input stream to read from
+ * @param uri the uri object to store the parsed fragment in
+ * @return true if the fragment was successfully parsed, false otherwise
+ */
 bool URIParser::parse_fragment(std::istream &input, URI &uri) const {
   std::string fragment;
   char c;
@@ -447,7 +479,16 @@ std::string URIParser::percent_decode(const std::string &input) {
 
   return output;
 }
-
+/** 
+  * @brief convert a pair of hexadecimal characters into a single unsigned char
+  * @details The function takes two hexadecimal characters, converts them into a
+  * single unsigned char and returns it.
+  * @param high The first hexadecimal character, which will be used as the high
+  * nibble of the resulting byte.
+  * @param low The second hexadecimal character, which will be used as the low
+  * nibble of the resulting byte.
+  * @return The unsigned char value of the two hexadecimal characters.
+  */
 unsigned char URIParser::hex_to_char(char high, char low) {
   auto hex_to_int = [](char c) -> int {
     if (c >= '0' && c <= '9')
