@@ -192,72 +192,6 @@ double EncryptionDetector::calculateRepetitionScore(
   return (double)repeatedPatterns / totalPatterns;
 }
 
-// double EncryptionDetector::calculateRepetitionScore(
-//     const std::vector<unsigned char> data) const {
-//
-//   if (data.size() < 4)
-//     return 0.0;
-//
-//   auto start = std::chrono::high_resolution_clock::now();
-//
-//   std::map<std::vector<unsigned char>, size_t> patterns;
-//   size_t patternLength = 4; // Check for 4-byte patterns
-//
-//   for (size_t i = 0; i <= data.size() - patternLength; i++) {
-//     std::vector<unsigned char> pattern(data.begin() + i,
-//                                        data.begin() + i + patternLength);
-//     patterns[pattern]++;
-//   }
-//   size_t repeatedPatterns = 0;
-//   for (const auto &pair : patterns) {
-//     if (pair.second > 1) {
-//       repeatedPatterns += pair.second - 1;
-//     }
-//   }
-//
-//   auto stop = std::chrono::high_resolution_clock::now();
-//   auto duration =
-//       std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-//   std::cout << "Inner Repetition score took " << duration.count() << "us\n";
-//
-//   return (double)repeatedPatterns / (data.size() - patternLength + 1);
-// }
-
-// double EncryptionDetector::calculateTransitionEntropy(
-//     const std::vector<unsigned char> data) const {
-//
-//   if (data.size() < 2)
-//     return 0.0;
-//
-//   auto start = std::chrono::high_resolution_clock::now();
-//
-//   std::map<std::pair<unsigned char, unsigned char>, size_t> transitions;
-//
-//   for (size_t i = 0; i < data.size() - 1; i++) {
-//     std::pair<unsigned char, unsigned char> transition = {data[i], data[i +
-//     1]}; transitions[transition]++;
-//   }
-//
-//   double entropy = 0.0;
-//   size_t totalTransitions = data.size() - 1;
-//
-//   for (const auto &pair : transitions) {
-//     double probability = (double)pair.second / totalTransitions;
-//     if (probability > 0) {
-//       entropy -= probability * log2(probability);
-//     }
-//   }
-//
-//   auto stop = std::chrono::high_resolution_clock::now();
-//   auto duration =
-//       std::chrono::duration_cast<std::chrono::microseconds>(stop - start);
-//   std::cout << "Inner Transition entropy took " << duration.count() <<
-//   "us\n";
-//
-//   return entropy;
-// }
-
-// Optimized Transition Entropy - Use sampling for large files
 double EncryptionDetector::calculateTransitionEntropy(
     const std::vector<unsigned char> data) const {
 
@@ -274,7 +208,7 @@ double EncryptionDetector::calculateTransitionEntropy(
     step = data.size() / MAX_TRANSITIONS;
   }
 
-  // Use array instead of map for better cache performance
+  // Use array instead of map for better performance
   // transitions[from][to] = count
   std::array<std::array<size_t, 256>, 256> transitions{};
 
@@ -486,8 +420,7 @@ void EncryptionDetector::analyze() const {
   else if (result->entropy > 6.0)
     score += 10;
 
-  // Chi-square test: encrypted data should be close to uniform distribution
-  // Lower chi-square values indicate more uniform distribution
+  // lower chi-square values indicate more uniform distribution
   if (result->chiSquare < 300)
     score += 25;
   else if (result->chiSquare < 500)
@@ -495,7 +428,7 @@ void EncryptionDetector::analyze() const {
   else if (result->chiSquare < 1000)
     score += 5;
 
-  // Low ASCII ratio suggests binary/encrypted data
+  // low ASCII ratio suggests binary/encrypted data
   if (result->asciiRatio < 0.1)
     score += 15;
   else if (result->asciiRatio < 0.3)
@@ -503,19 +436,19 @@ void EncryptionDetector::analyze() const {
   else if (result->asciiRatio < 0.5)
     score += 5;
 
-  // High variance suggests good distribution of byte values
+  // high variance suggests good distribution of byte values
   if (result->variance > 5000)
     score += 10;
   else if (result->variance > 3000)
     score += 5;
 
-  // Low repetition score suggests encrypted data
+  // low repetition score suggests encrypted data
   if (result->repetitionScore < 0.01)
     score += 10;
   else if (result->repetitionScore < 0.05)
     score += 5;
 
-  // High transition entropy suggests randomness
+  // high transition entropy suggests randomness
   if (result->transitionEntropy > 10)
     score += 10;
   else if (result->transitionEntropy > 8)

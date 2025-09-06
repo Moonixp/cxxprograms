@@ -5,14 +5,12 @@
 ```bash
 % tree -L 1 -d
 .
+├── answer.md        # scenario based answers
 ├── detectenc        #Q2 detect encryption
 ├── detectpessh      #Q1 detect if PE binaries are SSH clients
 ├── reverseEndian    #Q4 reverse the Endianess of a hex
 └── rfc3986uriparser #Q3 rfc3986 URI parser
-5 directories
 ```
-
-- `answer.md` contains senario based answers
 
 ---
 
@@ -28,6 +26,10 @@
     - node
     - make
     - base devel
+    - openssl
+    - curl
+
+---
 
 ### Dependencies installation:
 
@@ -35,28 +37,30 @@
 
 ```bash
 sudo apt update
-sudo apt install build-essential google-mock cmake nodejs make
+sudo apt install build-essential google-mock cmake nodejs make libssl-dev \
+libcurl4-openssl-dev
 ```
 
 - Archlinux
 
 ```bash
 sudo pacman -Syu
-sudo pacman -S base-devel google-test cmake nodejs make
+sudo pacman -S base-devel google-test cmake nodejs make openssl curl
 ```
 
 - Fedora
 
 ```bash
 sudo dnf check-update
-sudo dnf install gcc-c++ googletest-devel cmake nodejs make
+sudo dnf install gcc-c++ googletest-devel cmake nodejs make openssl-devel libcurl-devel
 ```
 
 - Opensuse
 
 ```bash
 sudo zypper refresh
-sudo zypper install gcc-c++ googletest-devel cmake nodejs make
+sudo zypper install gcc-c++ googletest-devel cmake nodejs make \
+libopenssl-devel libcurl-devel
 ```
 
 ---
@@ -89,52 +93,20 @@ node main.js
 
 ### rfc3986uriparser
 
-It is structured into a library and a separate testing suite.
-It uses `CMake` as its primary build system, but a native
-`g++` build is also an option.
-
-- build options:
-  - cmake-test-build => build test with cmake
-  - cmake-test-run => build test with cmake and run
-  - cmake-main-build => build main with cmake
-  - cmake-main-run => build main with cmake and run
-  - native-test-build => build test using g++
-  - native-main => build main using g++
-  - native-main-debug => build main using g++ with debug symbols
-  - clean => delete build dirs
-
-#### Example build test with cmake
-
-- build tests
-  ```bash
-  cd rfc3986uriparser/
-  make cmake-test-build
-  ls ./test_build/uri_parser_tests # binary path
-  ```
-- build and run tests
-  ```bash
-  cd rfc3986uriparser/
-  make cmake-test-run
-  ```
-
-#### rfc3986uriparser Doc
-
-- tree is as followed
-
-```tree
-% tree  -d
-.
-├── lib          # contains parser
-│   ├── include
-│   └── src
-└── test        # contains tests
-    ├── include
-    └── src    # contains individual test files
-
-7 directories
+```bash
+cd rfc3986uriparser
+make [build option]
 ```
 
-- 3 `CMakeLists.txt`
-  - one in lib to build to a static lib
-  - one in test to build
-  - one in root to build main with lib
+build options:
+
+```bash
+cmake-test-build   # build test with cmake
+cmake-test-run     # build test with cmake and run
+cmake-main-build   # build main with cmake
+cmake-main-run     # build main with cmake and run
+native-test-build  # build test using g++
+native-main        # build main using g++
+native-main-debug  # build main using g++ with debug symbols
+clean              # delete build dirs
+```

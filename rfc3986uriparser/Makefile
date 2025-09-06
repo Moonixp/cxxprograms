@@ -2,7 +2,7 @@ CXX_SRC:=src/main.cxx
 CC:=g++
 
 LIB_CXX_FILES := $(shell find lib/src/ -name '*.cxx')
-TEST_CXX_FILES := $(shell find test/src/ -name '*.cxx')
+TEST_CXX_FILES := $(shell find tests/src/ -name '*.cxx')
 
 CXXFLAGS= -Wall -std=c++23 -ggdb
 CXX_TEST_FLAGS= -lgtest

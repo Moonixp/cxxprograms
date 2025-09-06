@@ -1,4 +1,5 @@
 # CMake
+.vscode
 CMakeCache.txt
 CMakeFiles
 CMakeOutput.log
