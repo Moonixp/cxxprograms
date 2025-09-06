@@ -1,4 +1,4 @@
-CXX_SRC:=main.cxx
+CXX_SRC:=src/main.cxx
 CC:=g++
 
 LIB_CXX_FILES := $(shell find lib/src/ -name '*.cxx')

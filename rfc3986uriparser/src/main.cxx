@@ -1,4 +1,4 @@
-#include "lib/include/uri_parser.hpp"
+#include "../lib/include/uri_parser.hpp"
 #include <fstream>
 #include <iostream>
 #include <memory>

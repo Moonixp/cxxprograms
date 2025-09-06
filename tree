@@ -1,0 +1,14 @@
+encryption-detector/
+├── README.md                    # Essential for interviews
+├── Makefile                     # Your existing Makefile
+├── src/                         # Source files
+│   ├── detectenc.cpp           # Renamed from .cxx
+│   ├── detectenc.hpp           # Header file
+│   └── main.cpp               # Renamed from .cxx
+├── build/                      # Build artifacts
+│   └── detectenc              # Your binary
+├── tests/                      # Optional but impressive
+│   ├── test_samples/          # Sample files for testing
+│   └── run_tests.sh          # Simple test script
+└── docs/                      # Optional documentation
+    └── algorithm_notes.md     # Explain your algorithms

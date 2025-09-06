@@ -1,12 +1,17 @@
 BUILD_DIR=build
 BINARIES_DIR=binaries
 BIN_NAME=detectpessh
+CXX_SRC=$(shell find src -iname "*.cxx")
+file_in=
 
 all: build
-	g++ main.cxx -o $(BUILD_DIR)/$(BIN_NAME)
+	g++ $(CXX_SRC) -o $(BUILD_DIR)/$(BIN_NAME)
 	
 run:
-	./$(BUILD_DIR)/$(BIN_NAME) $(BINARIES_DIR)/putty.exe
+	./$(BUILD_DIR)/$(BIN_NAME) $(file_in) 
+
+test:
+	cd tests/ && ./run_tests.sh
 
 build:
 	mkdir -p ${BUILD_DIR} 

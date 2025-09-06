@@ -2,6 +2,11 @@
 #include <cstdint>
 #ifndef PE_HEADERS_H__
 #define PE_HEADERS_H__
+
+struct IMAGE_DATA_DIRECTORY {
+  uint32_t VirtualAddress;
+  uint32_t Size;
+} __attribute__((packed));
 struct DOS_HEADER {
   uint16_t e_magic;    // Magic number "MZ"
   uint16_t e_cblp;     // Bytes on last page
@@ -65,7 +70,8 @@ struct NT_HEADERS {
     uint32_t SizeOfHeapReserve;
     uint32_t SizeOfHeapCommit;
     uint32_t LoaderFlags;
-    uint32_t NumberOfRvaAndSizes;
+    uint32_t NumberOfRvaAndSizes; IMAGE_DATA_DIRECTORY DataDirectory[16];
+
   } __attribute__((packed)) OptionalHeader;
 };
 
@@ -82,10 +88,6 @@ struct SECTION_HEADER {
   uint32_t Characteristics;
 } __attribute__((packed));
 
-struct IMAGE_DATA_DIRECTORY {
-  uint32_t VirtualAddress;
-  uint32_t Size;
-} __attribute__((packed));
 
 struct IMAGE_IMPORT_DESCRIPTOR {
   uint32_t OriginalFirstThunk;

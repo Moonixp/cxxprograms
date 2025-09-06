@@ -11,7 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_subdirectory(lib)
 
 # Step 2: Add the main executable.
-add_executable(uri-parser main.cxx)
+add_executable(uri-parser src/main.cxx)
 
 # Step 3: Link the main executable to the library.
 # The 'uri-parser' executable needs the code from 'uri_parser_lib'.
